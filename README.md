@@ -1,1 +1,2 @@
-# edupulse
+# EduPulse
+ 

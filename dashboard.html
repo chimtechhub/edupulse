@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ribevine College Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@3.5.3/dist/vue-router.js"></script>
+
+  <style>
+
+:root{
+  --primary: #d8ddde;
+  --secondary: #d1e0f3;
+  --accent: #FF5722;
+  --background: #F0F4F8;
+  --card: #FFFFFF;
+  --text: #212121;
+  --button: #00796B;
+}
+a{
+      text-decoration: none;
+      color: #000;
+      }
+    .card-animation {
+      transition: transform 0.3s ease;
+    }
+    .card-animation:hover {
+      transform: scale(1.05);
+    }
+    .notification-count {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background-color: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+    .online-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: green;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+    
+/* Attendance style section */
+.menu-icon{
+      color: #000;
+      display: inline;
+    }
+    .darkmode-toggle {
+      color: white;
+      background-color: black;
+    }
+    .darkmode-toggle.dark {
+      color: black;
+      background-color: white;
+    }
+    .time-card {
+      text-align: center;
+      padding: 5px;
+      margin: 2px;
+      font-size: .8rem;
+    }
+
+    .v-card--flat {
+      box-shadow: none;
+    }
+    .v-text-field{
+        height: 10px;
+    }
+.signOpt{
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+    .attendanceContainer{
+        display: flex;
+    }
+.addStudentBtn .v-text-field{
+  height: 30px;
+}
+
+.cardContainer{
+  background-color: #E0EAF6;
+}
+
+.detailsCard{
+  background-color: #E0EAF6;
+  color: #000;
+  box-shadow: 1px 1px 1px 2px rgba(0,0,0,0.3);
+}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <v-app :dark="darkMode">
+      <v-navigation-drawer v-model="drawer" app>
+        <v-list dense>
+          <v-list-item @click="toggleDrawer" class="menu-icon">
+            <v-list-item-icon>
+              <v-icon>mdi-menu</v-icon>
+            </v-list-item-icon>
+          </v-list-item>  
+          <v-divider></v-divider>
+          <v-list-item-group v-model="selectedItem" color="primary">
+            <v-list-item v-for="(item, index) in menuItems" :key="index">
+              <v-list-item-icon>
+                <v-icon>{{ item.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <router-link :to="item.route">
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                </router-link>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+        <v-divider></v-divider>
+        <v-list dense>
+          <v-list-item>
+            <v-list-item-content>
+              <v-list-item-title @click="toggleDarkMode">Toggle Dark Mode</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+        <v-spacer></v-spacer>
+        <v-list dense>
+          <v-list-item @click="logout">
+            <v-list-item-icon>
+              <v-icon>mdi-logout</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>Logout</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+
+      <v-app-bar app color="#E0E9F8" dark>
+        <v-icon @click="toggleDrawer" class="menu-icon" color="black">mdi-menu</v-icon>
+        <v-toolbar-title class="black--text">Ribevine College</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <router-link to="/attendance">
+          <v-btn text class="ml-2 black--text">Attendance</v-btn>
+        </router-link>
+        <router-link to="/tuckshop">
+          <v-btn text class="ml-2 black--text">Tuckshop</v-btn>
+        </router-link>
+        <v-btn icon>
+          <v-icon class="black--text">mdi-bell</v-icon>
+          <span class="notification-count">5</span>
+        </v-btn>
+        <v-menu bottom left>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon v-bind="attrs" v-on="on">
+              <v-icon class="black--text">mdi-account-circle</v-icon>
+              <span class="online-indicator"></span>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item>
+              <v-list-item-title>{{ adminName }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-title>Settings</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </v-app-bar>
+
+      <v-main>
+        <v-container>
+          <router-view></router-view>
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
+
+  <script>
+const DashboardComponent = {
+  template: `
+    <v-container class="cardContainer">
+      <v-row>
+        <v-col cols="12">
+          <h1>Welcome, {{ adminName }}</h1>
+          <p>{{ formattedDate }}</p>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card class="card-animation" class="detailsCard dark">
+            <v-card-title>
+              <v-icon class="mr-2">mdi-cash</v-icon>
+              Balance
+            </v-card-title>
+            <v-card-text>₦{{ schoolCardBalance }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-currency-ngn</v-icon>
+              Spend Amount
+            </v-card-title>
+            <v-card-text>₦{{ spendAmount }}</v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" md="4">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-school</v-icon>
+              Total Students
+            </v-card-title>
+            <v-card-text>{{ totalStudents }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-account-check</v-icon>
+              Present Students
+            </v-card-title>
+            <v-card-text>{{ presentStudents }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-account-remove</v-icon>
+              Absent Students
+            </v-card-title>
+            <v-card-text>{{ absentStudents }}</v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" md="4">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-teach</v-icon>
+              Total Staff
+            </v-card-title>
+            <v-card-text>{{ totalStaff }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-account-tie</v-icon>
+              Present Staff
+            </v-card-title>
+            <v-card-text>{{ presentStaff }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card class="card-animation" color="black" dark>
+            <v-card-title>
+              <v-icon class="mr-2">mdi-account-remove</v-icon>
+              Absent Staff
+            </v-card-title>
+            <v-card-text>{{ absentStaff }}</v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
+          <v-data-table
+            :headers="attendanceHeaders"
+            :items="filteredRecords"
+            item-key="name"
+            class="elevation-1"
+          >
+            <template v-slot:item.status="{ item }">
+              <v-icon
+                v-if="item.signInTime && item.signOutTime"
+                class="attendance-icon"
+              >
+                mdi-check-circle
+              </v-icon>
+              <v-icon
+                v-else
+                class="attendance-icon-empty"
+              >
+                mdi-circle
+              </v-icon>
+            </template>
+          </v-data-table>
+        </v-col>
+      </v-row>
+    </v-container>
+  `,
+  data() {
+    return { 
+      adminName: 'Chimtech Hub',
+      formattedDate: this.getFormattedDate(),
+      schoolCardBalance: 120000,
+      spendAmount: 80000,
+      totalStudents: 500,
+      presentStudents: 450,
+      absentStudents: 50,
+      totalStaff: 50,
+      presentStaff: 45,
+      absentStaff: 5,
+      attendanceHeaders: [
+        { text: 'Name', value: 'name' },
+        { text: 'Sign In Time', value: 'signInTime' },
+        { text: 'Sign Out Time', value: 'signOutTime' },
+        { text: 'Status', value: 'status' },
+      ],
+      attendanceRecords: this.generateDummyRecords(20),
+    };
+  },
+  computed: {
+    filteredRecords() {
+      return this.attendanceRecords;
+    },
+  },
+  methods: {
+    getFormattedDate() {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+      return new Date().toLocaleDateString('en-US', options);
+    },
+    toggleDarkMode() {
+      this.darkMode = !this.darkMode;
+      this.$vuetify.theme.dark = this.darkMode;
+    },
+    logout() {
+      window.location.href = 'index.html';
+    },
+    generateDummyRecords(count) {
+      const names = [
+        "John Doe", "Jane Smith", "Robert Johnson", "Emily Davis", 
+        "Michael Brown", "Jessica Wilson", "William Jones", "Sophia Garcia", 
+        "James Martinez", "Mia Anderson", "David Taylor", "Olivia Lee", 
+        "Richard Harris", "Ava Thomas", "Charles Walker", "Isabella Scott", 
+        "Joseph Young", "Charlotte Adams", "Thomas King", "Amelia Baker"
+      ];
+      
+      let records = [];
+      for (let i = 0; i < count; i++) {
+        let record = {
+          name: names[i],
+          signInTime: i % 2 === 0 ? '08:00' : '',
+          signOutTime: i % 2 === 0 ? '14:00' : '',
+          status: i % 2 === 0 ? 'Present' : 'Absent'
+        };
+        records.push(record);
+      }
+      return records;
+    }
+  },
+};
+
+const AttendanceComponent = {
+        template: `
+              <v-container>
+          <!-- First Row -->
+          <v-row>
+            <v-col cols="12">
+              <h1>Welcome, {{ adminName }}</h1>
+              <p>{{ formattedDate }}</p>
+            </v-col>
+          </v-row>
+
+          <!-- Second Row -->
+          <v-col cols="4">
+            <div class="sign-buttons">
+              <v-btn large @click="signInOut('in')">Sign In</v-btn>
+              <v-btn large @click="signInOut('out')">Sign Out</v-btn>
+            </div>
+          </v-col>
+          <v-row class="second-row" cols="12">
+            
+            <v-col class="section">
+              
+                <!-- Attendance Capture Section -->
+              <v-card class="attendanceContainer">
+                <v-card class="pa-2">
+                <v-row>
+                  <v-col cols="10">
+                    <v-text-field label="Full Name" prepend-icon="fas fa-user" v-model="form.fullName"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Student ID" prepend-icon="fas fa-id-badge" v-model="form.studentId"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Class" prepend-icon="fa- fa-users" v-model="form.class"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Parent Phone" prepend-icon="fa- fa-mobile" v-model="form.parentPhone"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Address" prepend-icon="fa- fa-map" v-model="form.address"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Admin" prepend-icon="fa- fa-user" v-model="form.admin"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Signature" prepend-icon="fa- fa-fingerprint" v-model="form.signature"></v-text-field>
+                  </v-col>
+                </v-row>
+               
+                <v-row class="signOpt">
+                    <v-col cols="6" class="signOpt">
+                      <v-text-field label="Enter Student ID" prepend-icon="fas fa-id-badge" v-model="inputId" @change="fetchDetails"></v-text-field>
+                    </v-col>
+                    <v-col cols="6" class="text-center signOpt">
+                      <v-btn icon large @click="useThumbprint">
+                        <v-icon large>fas fa-fingerprint</v-icon>
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+              </v-card>
+            <!-- Student Photo and Confirmation Section -->
+            <v-card class="pa-5" cols="12">
+                <v-row>
+                  <v-col class="text-center">
+                    <div class="passport-field">
+                      <v-avatar size="100">
+                        <img src="/images/adminpas.png" alt="Passport">
+                      </v-avatar>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col class="text-center">
+                    <v-btn large block color="success">Confirmed</v-btn>
+                  </v-col>
+                  <v-col class="text-center">
+                    <v-btn large block color="error">Retry</v-btn>
+                  </v-col>
+                </v-row>
+
+               
+              </v-card>
+              </v-card>
+            </v-col>
+            
+                        
+            <v-col class="section" cols="4">
+              <!-- Student Info Section -->
+              <v-row>
+                <v-col cols="6">
+                  <v-card class="time-card" outlined>
+                    <label for="Time present">Time Present</label>
+                    <v-card-text>{{ timePresent }}</v-card-text>
+                  </v-card>
+                </v-col>
+                <v-col cols="6">
+                  <v-card class="time-card" outlined>
+                    <label for="Time present">Time Abssent</label>
+                    <v-card-text>{{ timeAbsent }}</v-card-text>
+                  </v-card>
+                </v-col>
+                <v-col cols="12">
+                  <v-card class="time-card" outlined>
+                    <h4>{{ welcomeMessage }}</h4>
+                    <p>Good morning Chimtech, Enjoy your day!</p>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+        </v-container>`
+    ,
+      data() {
+        return {
+            adminName: 'Chimtech Hub',
+          form: {
+            fullName: '',
+            studentId: '',
+            class: '',
+            parentPhone: '',
+            address: '',
+            admin: '',
+            signature: ''
+          },
+          inputId: '',
+          timePresent: '',
+          timeAbsent: '',
+          welcomeMessage: 'Welcome to Ribevine College'
+        }
+      },
+      computed: {
+        filteredRecords() {
+          return this.attendanceRecords.filter(record => {
+            return record.name.toLowerCase().includes(this.search.toLowerCase());
+          });
+        },
+        formattedDate() {
+          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+          return new Date().toLocaleDateString('en-US', options);
+        }
+      },
+      methods: {
+        signInOut(status) {
+          console.log(`Sign ${status}`);
+        },
+        fetchDetails() {
+          console.log(`Fetching details for ID: ${this.inputId}`);
+        },
+        useThumbprint() {
+          console.log('Using thumbprint');
+        },
+        getCurrentDate() {
+          return new Date().toLocaleDateString();
+        },
+      },
+    };
+
+    const TuckshopComponent = {
+        template: `
+              <v-container>
+          <!-- First Row -->
+          <v-row>
+            <v-col cols="12">
+              <h1>Welcome, {{ adminName }}</h1>
+              <p>{{ formattedDate }}</p>
+            </v-col>
+          </v-row>
+
+          <!-- Second Row -->
+       
+          <v-row class="second-row" cols="12">
+            
+            <v-col class="section">
+              
+                <!-- Attendance Capture Section -->
+              <v-card class="attendanceContainer">
+                <v-card class="pa-2">
+                <v-row>
+                  <v-col cols="10">
+                    <v-text-field label="Full Name" prepend-icon="fas fa-user" v-model="form.fullName"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Student ID" prepend-icon="fas fa-id-badge" v-model="form.studentId"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Class" prepend-icon="fa- fa-users" v-model="form.class"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Parent Phone" prepend-icon="fa- fa-mobile" v-model="form.parentPhone"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Address" prepend-icon="fa- fa-map" v-model="form.address"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Admin" prepend-icon="fa- fa-user" v-model="form.admin"></v-text-field>
+                  </v-col>
+                  <v-col cols="10">
+                    <v-text-field label="Signature" prepend-icon="fa- fa-fingerprint" v-model="form.signature"></v-text-field>
+                  </v-col>
+                </v-row>
+               
+                <v-row class="signOpt">
+                    <v-col cols="6" class="signOpt">
+                      <v-text-field label="Enter Student ID" prepend-icon="fas fa-id-badge" v-model="inputId" @change="fetchDetails"></v-text-field>
+                    </v-col>
+                    <v-col cols="6" class="text-center signOpt">
+                      <v-btn icon large @click="useThumbprint">
+                        <v-icon large>fas fa-fingerprint</v-icon>
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+              </v-card>
+            <!-- Student Photo and Confirmation Section -->
+            <v-card class="pa-5" cols="12">
+                <v-row>
+                  <v-col class="text-center">
+                    <div class="passport-field">
+                      <v-avatar size="100">
+                        <img src="/images/adminpas.png" alt="Passport">
+                      </v-avatar>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col class="text-center">
+                    <v-btn large block color="success">Confirmed</v-btn>
+                  </v-col>
+                  <v-col class="text-center">
+                    <v-btn large block color="error">Retry</v-btn>
+                  </v-col>
+                </v-row>
+
+               
+              </v-card>
+              </v-card>
+            </v-col>
+            
+                        
+            <v-col class="section" cols="4">
+              <!-- Student Info Section -->
+              <v-row>
+                <v-col cols="6">
+                  <v-card class="voucher-card" outlined>
+                    <label for="Previous balance">Previous Balance</label>
+                    <v-card-text>{{ previousBalance }}</v-card-text>
+                  </v-card>
+                </v-col>
+                <v-col cols="6">
+                  <v-card class="voucher-card" outlined>
+                    <label for="current balance">Current Balance</label>
+                    <v-card-text>{{ currentBalance }}</v-card-text>
+                  </v-card>
+                </v-col>
+                
+                <v-col cols="6">
+                
+                      <div class="fundVoucher btn">
+                        <button color="secondary" @click="fundVoucherDialog = true">Fund Voucher</button>
+                      </div>
+                  
+                </v-col>
+                <v-col cols="6">
+                
+                  
+                      <div class="buySnacks btn">
+                        <button color="primary" @click="buySnacksDialog = true">Buy Snacks</button>
+                      </div>
+                  
+                </v-col>
+
+              </v-row>
+              
+            </v-col>
+          </v-row>
+        </v-container>`
+    ,
+      data() {
+        return {
+            adminName: 'Admin Name',
+          form: {
+            fullName: '',
+            studentId: '',
+            class: '',
+            parentPhone: '',
+            address: '',
+            admin: '',
+            signature: ''
+          },
+          inputId: '',
+          timePresent: '',
+          timeAbsent: '',
+          welcomeMessage: 'Welcome to Ribevine College'
+        }
+      },
+      computed: {
+        filteredRecords() {
+          return this.attendanceRecords.filter(record => {
+            return record.name.toLowerCase().includes(this.search.toLowerCase());
+          });
+        },
+        formattedDate() {
+          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+          return new Date().toLocaleDateString('en-US', options);
+        }
+      },
+      methods: {
+        signInOut(status) {
+          console.log(`Sign ${status}`);
+        },
+        fetchDetails() {
+          console.log(`Fetching details for ID: ${this.inputId}`);
+        },
+        useThumbprint() {
+          console.log('Using thumbprint');
+        },
+        getCurrentDate() {
+          return new Date().toLocaleDateString();
+        },
+
+        toggleDrawer() {
+          this.drawer = !this.drawer;
+        },
+        expandSidebar() {
+          this.drawer = true;
+        },
+        collapseSidebar() {
+          if (!this.drawer) {
+            this.drawer = false;
+          }
+        }
+      },
+    };
+
+    const ManageStudentComponent = {
+  template: `
+    <v-container>
+      <v-row>
+        <v-col cols="12">
+          <h1>Manage Student</h1>
+          
+          <!-- Trigger Button -->
+          <v-btn color="primary" @click="openAddStudentModal">Add New Student</v-btn>
+          
+          <!-- Add Student Modal Component -->
+          <add-student-modal
+            v-if="showAddStudentModal"
+            @close="closeAddStudentModal"
+            @add-student="handleAddStudent"
+          />
+
+          <!-- Student Data Table -->
+          <v-data-table
+            :headers="headers"
+            :items="students"
+            item-key="id"
+          >
+            <template v-slot:item.actions="{ item }">
+              <v-btn small @click="editStudent(item)">Edit</v-btn>
+              <v-btn small @click="deleteStudent(item)">Delete</v-btn>
+            </template>
+          </v-data-table>
+        </v-col>
+      </v-row>
+    </v-container>
+  `,
+  data() {
+    return {
+      showAddStudentModal: false,
+      newStudent: {
+        name: '',
+        age: null,
+        class: '',
+        parentPhone: '',
+        address: ''
+      },
+      headers: [
+        { text: 'ID', value: 'id' },
+        { text: 'Name', value: 'name' },
+        { text: 'Age', value: 'age' },
+        { text: 'Class', value: 'class' },
+        { text: 'Parent Phone', value: 'parentPhone' },
+        { text: 'Address', value: 'address' },
+        { text: 'Actions', value: 'actions', sortable: false },
+      ],
+      students: [
+        { id: 1, name: 'John Doe', age: 16, class: '10A', parentPhone: '1234567890', address: '123 Main St' },
+        { id: 2, name: 'Jane Smith', age: 15, class: '10B', parentPhone: '0987654321', address: '456 Elm St' },
+      ],
+      ages: Array.from({ length: 18 }, (_, i) => i + 1), // Ages from 1 to 18
+    };
+  },
+  methods: {
+    openAddStudentModal() {
+      this.showAddStudentModal = true;
+    },
+    closeAddStudentModal() {
+      this.showAddStudentModal = false;
+    },
+    handleAddStudent(newStudent) {
+      const newId = this.students.length ? this.students[this.students.length - 1].id + 1 : 1;
+      this.students.push({ ...newStudent, id: newId });
+      this.closeAddStudentModal();
+    },
+    editStudent(student) {
+      console.log('Edit student:', student);
+      // Implement editing logic here
+    },
+    deleteStudent(student) {
+      this.students = this.students.filter(s => s.id !== student.id);
+      console.log('Delete student:', student);
+    }
+  }
+};
+
+Vue.component('add-student-modal', {
+  template: `
+    <v-dialog v-model="dialog" max-width="600px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Add New Student</span>
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="form" class="addStudentBtn">
+            <v-text-field v-model="student.name" label="Student Name" required></v-text-field>
+            <v-select v-model="student.age" :items="ages" label="Age" required></v-select>
+            <v-text-field v-model="student.class" label="Class" required></v-text-field>
+            <v-text-field v-model="student.parentPhone" label="Parent Phone Number" required></v-text-field>
+            <v-textarea v-model="student.address" label="Address" required></v-textarea>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="closeModal">Cancel</v-btn>
+          <v-btn color="blue darken-1" text @click="addStudent">Add</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  `,
+  data() {
+    return {
+      dialog: true,
+      student: {
+        name: '',
+        age: null,
+        class: '',
+        parentPhone: '',
+        address: ''
+      },
+      ages: Array.from({ length: 18 }, (_, i) => i + 1) // Ages from 1 to 18
+    };
+  },
+  methods: {
+    addStudent() {
+      if (this.$refs.form.validate()) {
+        this.$emit('add-student', this.student);
+        this.closeModal();
+        this.resetForm();
+      }
+    },
+    closeModal() {
+      this.dialog = false;
+      this.$emit('close');
+    },
+    resetForm() {
+      this.student = {
+        name: '',
+        age: null,
+        class: '',
+        parentPhone: '',
+        address: ''
+      };
+    }
+  }
+});
+
+
+const ManageStaffComponent = {
+  template: `
+    <v-container>
+      <v-row>
+        <v-col cols="12">
+          <h1>Manage Staff</h1>
+          <v-btn color="primary" @click="showAddStaffModal = true">Add New Staff</v-btn>
+
+          <v-dialog v-model="showAddStaffModal" max-width="500px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">Add New Staff</span>
+              </v-card-title>
+              <v-card-text>
+                <v-form ref="form" v-model="valid">
+                  <v-text-field
+                    v-model="newStaff.name"
+                    label="Name"
+                    :rules="[v => !!v || 'Name is required']"
+                    required
+                  ></v-text-field>
+                  <v-text-field
+                    v-model="newStaff.id"
+                    label="Staff ID"
+                    :rules="[v => !!v || 'Staff ID is required']"
+                    required
+                  ></v-text-field>
+                  <v-text-field
+                    v-model="newStaff.position"
+                    label="Position"
+                    :rules="[v => !!v || 'Position is required']"
+                    required
+                  ></v-text-field>
+                </v-form>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="secondary" text @click="closeModal">Cancel</v-btn>
+                <v-btn
+                  :disabled="!valid"
+                  color="primary"
+                  text
+                  @click="addStaff"
+                >
+                  Add
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <v-data-table
+            :headers="headers"
+            :items="staff"
+            item-key="id"
+          >
+            <template v-slot:item.actions="{ item }">
+              <v-btn small @click="editStaff(item)">Edit</v-btn>
+              <v-btn small @click="deleteStaff(item)">Delete</v-btn>
+            </template>
+          </v-data-table>
+        </v-col>
+      </v-row>
+    </v-container>
+  `,
+  data() {
+    return {
+      showAddStaffModal: false,
+      valid: false,
+      newStaff: {
+        name: '',
+        id: '',
+        position: ''
+      },
+      headers: [
+        { text: 'Name', value: 'name' },
+        { text: 'ID', value: 'id' },
+        { text: 'Position', value: 'position' },
+        { text: 'Actions', value: 'actions', sortable: false },
+      ],
+      staff: [
+        { id: 1, name: 'Alice Johnson', position: 'Teacher' },
+        { id: 2, name: 'Bob Brown', position: 'Administrator' },
+      ]
+    };
+  },
+  methods: {
+    openAddStaffModal() {
+      this.showAddStaffModal = true;
+    },
+    closeModal() {
+      this.showAddStaffModal = false;
+    },
+    addStaff() {
+      if (this.$refs.form.validate()) {
+        const newId = this.staff.length ? this.staff[this.staff.length - 1].id + 1 : 1;
+        this.staff.push({ ...this.newStaff, id: newId });
+        this.resetForm();
+        this.closeModal();
+      }
+    },
+    resetForm() {
+      this.newStaff = {
+        name: '',
+        id: '',
+        position: ''
+      };
+      this.valid = false;
+      this.$refs.form.reset();
+    },
+    editStaff(staff) {
+      console.log('Edit staff:', staff);
+    },
+    deleteStaff(staff) {
+      this.staff = this.staff.filter(s => s.id !== staff.id);
+      console.log('Delete staff:', staff);
+    }
+  }
+};
+
+
+
+
+const NotificationsComponent = {
+      template: `
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <h1>Notifications</h1>
+              <v-list>
+                <v-list-item v-for="(notification, index) in notifications" :key="index">
+                  <v-list-item-content>
+                    <v-list-item-title>{{ notification.title }}</v-list-item-title>
+                    <v-list-item-subtitle>{{ notification.message }}</v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+            </v-col>
+          </v-row>
+        </v-container>
+      `,
+      data() {
+        return {
+          notifications: [
+            { title: 'New Assignment', message: 'A new assignment has been posted.' },
+            { title: 'Meeting Reminder', message: 'Reminder about the meeting tomorrow.' },
+          ]
+        };
+      }
+    };
+
+    const SettingsComponent = {
+      template: `
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <h1>Settings</h1>
+              <v-form>
+                <v-text-field label="Change Password"></v-text-field>
+                <v-text-field label="Update Email"></v-text-field>
+                <v-btn color="primary">Save</v-btn>
+              </v-form>
+            </v-col>
+          </v-row>
+        </v-container>
+      `
+    };
+
+    const routes = [
+      { path: '/', component: DashboardComponent },
+      { path: '/attendance', component: AttendanceComponent },
+      { path: '/tuckshop', component: TuckshopComponent },
+      { path: '/manage-student', component: ManageStudentComponent },
+      { path: '/manage-staff', component: ManageStaffComponent },
+      { path: '/notifications', component: NotificationsComponent },
+      { path: '/settings', component: SettingsComponent }
+    ];
+
+    const router = new VueRouter({
+      routes
+    });
+
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      router,
+      data() {
+        return {
+          drawer: false,
+          selectedItem: null,
+          darkMode: false,
+          menuItems: [
+            { title: 'Dashboard', icon: 'mdi-view-dashboard', route: '/' },
+            { title: 'Attendance', icon: 'mdi-calendar-check', route: '/attendance' },
+            { title: 'Tuckshop', icon: 'mdi-cupcake', route: '/tuckshop' },
+            { title: 'Manage Student', icon: 'mdi-account-multiple', route: '/manage-student' },
+            { title: 'Manage Staff', icon: 'mdi-account-group', route: '/manage-staff' },
+            { title: 'Notifications', icon: 'mdi-bell', route: '/notifications' },
+            { title: 'Settings', icon: 'mdi-cog', route: '/settings' }
+          ],
+          adminName: 'Admin Name'
+        };
+      },
+      methods: {
+        toggleDrawer() {
+          this.drawer = !this.drawer;
+        },
+        toggleDarkMode() {
+          this.darkMode = !this.darkMode;
+        },
+        logout() {
+          alert('Logged out');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

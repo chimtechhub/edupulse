@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ribevine College Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@3.5.3/dist/vue-router.js"></script>
+
+  <style>
+    .main-content {
+      padding: 10px;
+    }
+    .passport-field {
+      border: 2px solid #000;
+      border-radius: 50%;
+      height: 120px;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .main-section {
+      display: flex;
+      flex-direction: column;
+    }
+    .second-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .section {
+      flex: 1;
+      margin: 5px;
+      min-width: 300px; /* Ensure sections don't get too small */
+    }
+
+    .menu-icon{
+      color: #000;
+      display: inline;
+    }
+    .darkmode-toggle {
+      color: white;
+      background-color: black;
+    }
+    .darkmode-toggle.dark {
+      color: black;
+      background-color: white;
+    }
+    .time-card {
+      text-align: center;
+      padding: 5px;
+      margin: 2px;
+      font-size: .8rem;
+    }
+
+    .v-card--flat {
+      box-shadow: none;
+    }
+    .v-text-field{
+        height: 10px;
+    }
+.signOpt{
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+    .attendanceContainer{
+        display: flex;
+    }
+
+    .v-navigation-drawer {
+      width: 80px; /* Collapsed width */
+      overflow: hidden;
+      transition: width 0.3s;
+    }
+    .v-navigation-drawer.expanded {
+      width: 250px; /* Expanded width */
+    }
+    .v-list-item-content {
+      display: none;
+      transition: opacity 0.3s;
+    }
+    .v-navigation-drawer.expanded .v-list-item-content {
+      display: block;
+    }
+    .v-list-item-icon {
+      min-width: 0;
+      width: 48px;
+    }
+    .v-list-item {
+      align-items: center;
+    }
+    .menu-icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 1;
+    }
+    .sidebar-hover {
+      width: 250px; /* Expanded width on hover */
+    }
+    .sidebar-hover .v-list-item-content {
+      display: block;
+    }
+    .sidebar-hover .v-list-item-icon {
+      width: auto;
+    }
+    .v-list-item:hover .v-list-item-content {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <v-app :dark="darkMode">
+        <v-navigation-drawer v-model="drawer" app>
+          <v-list dense>
+            
+            <v-list-item @click="toggleDrawer" class="menu-icon">
+              <v-list-item-icon>
+                <v-icon>mdi-menu</v-icon>
+              </v-list-item-icon>
+            </v-list-item>  
+
+             
+            <v-divider></v-divider>
+            <v-list-item-group v-model="selectedItem" color="primary">
+              <v-list-item v-for="(item, index) in menuItems" :key="index">
+                <v-list-item-icon>
+                  <v-icon>{{ item.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
+          <v-divider></v-divider>
+          <v-list dense>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title @click="toggleDarkMode">Toggle Dark Mode</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+          <v-spacer></v-spacer>
+          <v-list dense>
+            <v-list-item @click="logout">
+              <v-list-item-icon>
+                <v-icon>mdi-logout</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Logout</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-navigation-drawer>
+  
+        <v-app-bar app color="white" dark>
+
+              <v-icon @click="toggleDrawer" class="menu-icon" color="black">mdi-menu</v-icon>
+
+              <v-toolbar-title class="black--text">Ribevine College</v-toolbar-title>
+          <v-spacer></v-spacer>
+          
+          <a href="attendance.html"><v-btn text class="ml-2 black--text">Attendance</v-btn></a>
+         <a href="tuckshop.html"> <v-btn text class="ml-2 black--text">Tuckshop</v-btn></a>
+          <v-btn icon>
+            <v-icon class="black--text">mdi-bell</v-icon>
+            <span class="notification-count">5</span>
+          </v-btn>
+          <v-menu bottom left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on">
+                <v-icon class="black--text">mdi-account-circle</v-icon>
+                <span class="online-indicator"></span>
+              </v-btn>
+            </template>
+  
+            <v-list>
+              <v-list-item>
+                <v-list-item-title>{{ adminName }}</v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>Settings</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          
+        </v-app-bar>
+
+     <!-- Sidebar -->
+     <v-navigation-drawer
+     app
+     v-model="drawer"
+     color="grey lighten-4"
+     class="v-navigation-drawer"
+     :class="{ expanded: drawer, 'sidebar-hover': !drawer }"
+     @mouseover="expandSidebar"
+     @mouseleave="collapseSidebar"
+   >
+     <v-list>
+<template v-for="item in menuItems">
+         <v-list-item :key="item.title" class="v-list-item--link">
+           <v-list-item-icon>
+             <v-icon>{{ item.icon }}</v-icon>
+           </v-list-item-icon>
+           <v-list-item-content>
+             <v-list-item-title>{{ item.title }}</v-list-item-title>
+           </v-list-item-content>
+         </v-list-item>
+       </template>
+       <v-divider></v-divider>
+       <v-list-item>
+         <v-list-item-content>
+           <v-list-item-title class="text-h6">Admin: {{ adminName }}</v-list-item-title>
+         </v-list-item-content>
+         <v-btn color="red" text>Logout</v-btn>
+       </v-list-item>
+     </v-list>
+   </v-navigation-drawer>
+
+      <v-main>
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <h1>Welcome, {{ adminName }}</h1>
+              <p>{{ formattedDate }}</p>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-cash</v-icon>
+                  Balance
+                </v-card-title>
+                <v-card-text>₦{{ schoolCardBalance }}</v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-currency-ngn</v-icon>
+                  Spend Amount
+                </v-card-title>
+                <v-card-text>₦{{ spendAmount }}</v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-school</v-icon>
+                  Total Students
+                </v-card-title>
+                <v-card-text>{{ totalStudents }}</v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-account-check</v-icon>
+                  Present Students
+                </v-card-title>
+                <v-card-text>{{ presentStudents }}</v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-account-remove</v-icon>
+                  Absent Students
+                </v-card-title>
+                <v-card-text>{{ absentStudents }}</v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-teach</v-icon>
+                  Total Staff
+                </v-card-title>
+                <v-card-text>{{ totalStaff }}</v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-account-tie</v-icon>
+                  Present Staff
+                </v-card-title>
+                <v-card-text>{{ presentStaff }}</v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card class="card-animation" color="black" dark>
+                <v-card-title>
+                  <v-icon class="mr-2">mdi-account-remove</v-icon>
+                  Absent Staff
+                </v-card-title>
+                <v-card-text>{{ absentStaff }}</v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <v-data-table
+                :headers="attendanceHeaders"
+                :items="filteredRecords"
+                item-key="name"
+                class="elevation-1"
+              >
+                <template v-slot:item.status="{ item }">
+                  <v-icon
+                    v-if="item.signInTime && item.signOutTime"
+                    class="attendance-icon"
+                  >
+                    mdi-check-circle
+                  </v-icon>
+                  <v-icon
+                    v-else
+                    class="attendance-icon-empty"
+                  >
+                    mdi-circle
+                  </v-icon>
+                </template>
+              </v-data-table>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-main>
+    </v-app>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data() {
+        return {
+          darkMode: false,
+          drawer: true,
+          selectedItem: 0,
+          adminName: 'Chimtech Hub',
+          search: '',
+          menuItems: [
+            { title: 'Dashboard', icon: 'mdi-view-dashboard' },
+            { title: 'Attendance', icon: 'mdi-calendar-check' },
+            { title: 'Tuckshop', icon: 'mdi-cart' },
+            { title: 'New Student', icon: 'mdi-account-plus' },
+            { title: 'New Staff', icon: 'mdi-account-tie' },
+            { title: 'Manage Student', icon: 'mdi-account-multiple' },
+            { title: 'Manage Staff', icon: 'mdi-account-supervisor' },
+            { title: 'Notifications', icon: 'mdi-bell' },
+            { title: 'Settings', icon: 'mdi-cog' }
+          ],
+          schoolCardBalance: 120000,
+          spendAmount: 80000,
+          totalStudents: 500,
+          presentStudents: 450,
+          absentStudents: 50,
+          totalStaff: 50,
+          presentStaff: 45,
+          absentStaff: 5,
+          attendanceHeaders: [
+            { text: 'Name', value: 'name' },
+            { text: 'Sign In Time', value: 'signInTime' },
+            { text: 'Sign Out Time', value: 'signOutTime' },
+            { text: 'Status', value: 'status' },
+          ],
+          attendanceRecords: this.generateDummyRecords(40),
+        };
+      },
+      computed: {
+        filteredRecords() {
+          return this.attendanceRecords.filter(record => {
+            return record.name.toLowerCase().includes(this.search.toLowerCase());
+          });
+        },
+        formattedDate() {
+          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+          return new Date().toLocaleDateString('en-US', options);
+        }
+      },
+      methods: {
+        toggleDarkMode() {
+          this.darkMode = !this.darkMode;
+          this.$vuetify.theme.dark = this.darkMode;
+        },
+        logout() {
+          window.location.href = 'index.html';
+        },
+        generateDummyRecords(count) {
+          let records = [];
+          for (let i = 1; i <= count; i++) {
+            let record = {
+              name: `Student ${i}`,
+              signInTime: i % 2 === 0 ? '08:00' : '',
+              signOutTime: i % 2 === 0 ? '14:00' : ''
+            };
+            records.push(record);
+          }
+          return records;
+        },
+       
+        toggleDrawer() {
+          this.drawer = !this.drawer;
+        },
+        expandSidebar() {
+          this.drawer = true;
+        },
+        collapseSidebar() {
+          if (!this.drawer) {
+            this.drawer = false;
+          }
+        }
+
+      }
+    });
+  </script>
+</body>
+</html>

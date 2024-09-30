@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Management System - Login</title>
+  <!-- Vue.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <!-- Vuetify.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.js"></script>
+  <!-- Vuetify CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.10/dist/vuetify.min.css" rel="stylesheet">
+  <!-- Axios CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-container>
+        <v-row justify="center">
+          <v-col cols="12" md="6">
+            <v-card class="pa-5" dark color="black">
+              <v-card-title class="headline text-center">Attendance Management System</v-card-title>
+              
+              <!-- Login Form -->
+              <v-form v-if="!isCreatingAccount" @submit.prevent="loadDashboard">
+                <v-text-field v-model="staffId" label="Staff ID" required></v-text-field>
+                <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
+                <v-btn type="submit" color="primary">Login</v-btn>
+                <v-btn text @click="isCreatingAccount = true">Create Account</v-btn>
+            </v-form>
+            
+              
+              <!-- Create Account Form -->
+              <v-form v-if="isCreatingAccount" @submit.prevent="createAccount">
+                <v-text-field v-model="staffId" label="Temporary Staff ID" required></v-text-field>
+                <v-text-field v-model="fullName" label="Full Name" required></v-text-field>
+                <v-text-field v-model="age" label="Age" required></v-text-field>
+                <v-text-field v-model="phoneNumber" label="Phone Number" required></v-text-field>
+                <v-text-field v-model="address" label="Address" required></v-text-field>
+                <v-text-field v-model="maritalStatus" label="Marital Status" required></v-text-field>
+                <v-text-field v-model="emergencyContact" label="Emergency Contact" required></v-text-field>
+                <v-text-field v-model="email" label="Email" type="email" required></v-text-field>
+                <v-text-field v-model="position" label="Position" required></v-text-field>
+                <v-text-field v-model="dateJoined" label="Date Joined" type="date" required></v-text-field>
+                <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
+                <v-btn type="submit" color="primary">Create Account</v-btn>
+                <v-btn text @click="isCreatingAccount = false">Back to Login</v-btn>
+              </v-form>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-app>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        isCreatingAccount: false,
+        staffId: '',
+        password: '',
+        fullName: '',
+        age: '',
+        phoneNumber: '',
+        address: '',
+        maritalStatus: '',
+        emergencyContact: '',
+        email: '',
+        position: '',
+        dateJoined: ''
+      },
+      methods: {
+        loadDashboard() {
+            // In a real scenario, you'd authenticate against an API here
+            if (this.staffId && this.password) {
+                // For testing, navigate to dashboard.html
+                window.location.href = 'dashboard.html';
+            } else {
+                alert('Please enter your Staff ID and Password.');
+            }
+        },
+        async login() {
+          try {
+            const response = await axios.post('/api/login', {
+              staffId: this.staffId,
+              password: this.password
+            });
+            // Handle successful login (e.g., redirect to dashboard)
+            window.location.href = 'dashboard.html';
+          } catch (error) {
+            console.error('Login failed:', error);
+          }
+        },
+        async createAccount() {
+          try {
+            const response = await axios.post('/api/create-account', {
+              staffId: this.staffId,
+              fullName: this.fullName,
+              age: this.age,
+              phoneNumber: this.phoneNumber,
+              address: this.address,
+              maritalStatus: this.maritalStatus,
+              emergencyContact: this.emergencyContact,
+              email: this.email,
+              position: this.position,
+              dateJoined: this.dateJoined,
+              password: this.password
+            });
+            // Handle successful account creation
+            this.isCreatingAccount = false;
+          } catch (error) {
+            console.error('Account creation failed:', error);
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
